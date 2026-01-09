@@ -1,11 +1,1261 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <title>Ecommerce Platform</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAMMA | AI Companion Commerce</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Premium Liquid Glass Effects */
+        .liquid-glass {
+            background: linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.1) 0%,
+                    rgba(255, 255, 255, 0.05) 100%);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.37),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.08) 0%,
+                    rgba(255, 255, 255, 0.03) 100%);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(212, 175, 55, 0.4);
+            box-shadow: 0 20px 60px rgba(212, 175, 55, 0.2);
+        }
+
+        .premium-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+
+        .premium-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(212, 175, 55, 0.5);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+
+        /* ===== Auth Bird Animations ===== */
+
+        .bird-idle {
+            animation: breathe 3s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+
+            0%,
+            100% {
+                transform: scale(1) translateY(0);
+            }
+
+            50% {
+                transform: scale(1.02) translateY(-3px);
+            }
+        }
+
+        .bird-watching .bird-head {
+            transform-origin: 130px 85px;
+            animation: watchInput 0.8s ease-in-out infinite alternate;
+        }
+
+        .bird-watching .bird-eye {
+            animation: eyeTrack 1s ease-in-out infinite;
+            transform-origin: 135px 90px;
+        }
+
+        .bird-watching .bird-wing-front,
+        .bird-watching .bird-wing-back {
+            transform-origin: 80px 110px;
+            animation: wingHover 1.2s ease-in-out infinite alternate;
+        }
+
+        @keyframes watchInput {
+            0% {
+                transform: rotate(-4deg) translateY(0);
+            }
+
+            100% {
+                transform: rotate(4deg) translateY(-4px);
+            }
+        }
+
+        @keyframes eyeTrack {
+
+            0%,
+            100% {
+                transform: translateX(-1px);
+            }
+
+            50% {
+                transform: translateX(1px);
+            }
+        }
+
+        @keyframes wingHover {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            100% {
+                transform: translateY(3px) rotate(6deg);
+            }
+        }
+
+        /* Privacy state: eyes closed + soft wing cover */
+        .bird-privacy .bird-eye circle {
+            opacity: 0;
+        }
+
+        .bird-privacy .bird-eyelid {
+            opacity: 1;
+            transition: opacity 0.2s ease;
+        }
+
+        .bird-privacy .bird-wing-front {
+            transform-origin: 80px 110px;
+            animation: coverEyesSoft 0.28s forwards;
+        }
+
+        @keyframes coverEyesSoft {
+            from {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            to {
+                transform: translate(10px, -18px) rotate(-22deg);
+            }
+        }
+
+        .bird-celebrate {
+            animation: celebrate 0.8s ease-in-out;
+        }
+
+        @keyframes celebrate {
+
+            0%,
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+
+            25% {
+                transform: scale(1.12) rotate(-10deg);
+            }
+
+            75% {
+                transform: scale(1.12) rotate(10deg);
+            }
+        }
+
+        .bird-fly-away {
+            animation: flyAway 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes flyAway {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(150vw, -150vh) scale(0.2) rotate(-30deg);
+                opacity: 0;
+            }
+        }
+
+        /* ===== Global Bird (AI companion) ===== */
+
+        .bird-global {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 120px;
+            height: 120px;
+            transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.6));
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .bird-global svg .bird-wing-front,
+        .bird-global svg .bird-wing-back,
+        .bird-global svg .bird-body,
+        .bird-global svg .bird-beak,
+        .bird-global svg .bird-eye {
+            transform-box: fill-box;
+        }
+
+        .bird-global svg .bird-wing-front,
+        .bird-global svg .bird-wing-back {
+            transform-origin: 80px 110px;
+        }
+
+        /* Wings flap while moving */
+        .bird-global.moving svg .bird-wing-front,
+        .bird-global.moving svg .bird-wing-back {
+            animation: flyFlap 0.25s ease-in-out infinite alternate;
+        }
+
+        /* Gentle hover when not moving */
+        .bird-global:not(.moving) svg .bird-wing-front,
+        .bird-global:not(.moving) svg .bird-wing-back {
+            animation: wingHover 1.4s ease-in-out infinite alternate;
+        }
+
+        @keyframes flyFlap {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            100% {
+                transform: translateY(10px) rotate(18deg);
+            }
+        }
+
+        /* Eye blink */
+        .bird-global svg .bird-eye {
+            transform-origin: 135px 90px;
+            animation: birdBlink 3.8s infinite;
+        }
+
+        @keyframes birdBlink {
+
+            0%,
+            92%,
+            100% {
+                transform: scaleY(1);
+            }
+
+            94%,
+            96% {
+                transform: scaleY(0.1);
+            }
+        }
+
+        /* NO beak/body animation now – only wings & blink */
+
+        /* Speech Bubble */
+        .speech-bubble {
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            margin-left: 24px;
+            transform: translateY(-50%) scale(0.95);
+            min-width: 220px;
+            max-width: 280px;
+            padding: 14px 18px;
+            background: linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.15) 0%,
+                    rgba(255, 255, 255, 0.08) 100%);
+            backdrop-filter: blur(24px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .speech-bubble.visible {
+            opacity: 1;
+            transform: translateY(-50%) scale(1);
+        }
+
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-right: 6px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .speech-bubble.right-side {
+            left: auto;
+            right: 100%;
+            margin-left: 0;
+            margin-right: 24px;
+        }
+
+        .speech-bubble.right-side::before {
+            left: auto;
+            right: -6px;
+            border-right: none;
+            border-left: 6px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* Ambient Background */
+        .ambient-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .blob-1 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, #D4AF37, transparent);
+            top: -150px;
+            left: -150px;
+        }
+
+        .blob-2 {
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, #F4D03F, transparent);
+            bottom: -100px;
+            right: -100px;
+        }
+
+        /* Premium Button */
+        .premium-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .premium-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.4),
+                    transparent 60%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .premium-btn:hover::before {
+            transform: translateX(100%);
+        }
+
+        .premium-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Cart Badge */
+        .cart-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            min-width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #D4AF37, #F4D03F);
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: #000;
+            padding: 0 4px;
+        }
+
+        /* Overlays */
+        .success-overlay {
+            background: radial-gradient(circle at center,
+                    rgba(212, 175, 55, 0.15),
+                    rgba(0, 0, 0, 0.97));
+            backdrop-filter: blur(12px);
+        }
+
+        /* macOS style openings */
+        @keyframes macOpen {
+            0% {
+                opacity: 0;
+                transform: scale(0.92) translateY(10px);
+                filter: blur(10px);
+            }
+
+            60% {
+                opacity: 1;
+                transform: scale(1.02) translateY(0);
+                filter: blur(0);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes macSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
+
 <body>
-  <h1>My Ecommerce Platform</h1>
-  <p>Welcome to our store</p>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef, useEffect } = React;
+
+        /* ====================== DATA ====================== */
+        /* ====================== DATA ====================== */
+        // Products will be fetched from API
+
+
+        /* ====================== ICONS ====================== */
+        const Icons = {
+            Cart: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                        d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                </svg>
+            ),
+            User: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                        d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
+            ),
+            Search: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-4.35-4.35" />
+                </svg>
+            ),
+            Heart: ({ className = "w-5 h-5", filled }) => (
+                <svg className={className} fill={filled ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+            ),
+            Star: ({ className = "w-4 h-4" }) => (
+                <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+            ),
+            Check: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+            ),
+            X: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            ),
+            ChevronDown: ({ className = "w-5 h-5" }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+            )
+        };
+
+        /* ====================== BIRD SVG ====================== */
+        const BirdSVG = () => (
+            <svg viewBox="0 0 200 200" className="w-full h-full">
+                <g className="bird-wing-back">
+                    <path d="M80,100 L40,55 L105,80 Z" fill="#B8860B" />
+                </g>
+                <g className="bird-body">
+                    <ellipse cx="95" cy="120" rx="32" ry="38" fill="#FFFFFF" />
+                </g>
+                <g className="bird-head">
+                    <circle cx="125" cy="93" r="23" fill="#FFFFFF" />
+                    <g className="bird-beak">
+                        <path d="M143,90 L170,96 L143,102 Z" fill="#D4AF37" />
+                    </g>
+                    <g className="bird-eye">
+                        <circle cx="135" cy="90" r="4" fill="#000000" />
+                        <circle cx="137" cy="88" r="1.5" fill="#FFFFFF" />
+                    </g>
+                    <path
+                        className="bird-eyelid"
+                        d="M130 90 Q135 86 140 90"
+                        stroke="#000000"
+                        strokeWidth="2.3"
+                        strokeLinecap="round"
+                        fill="none"
+                        opacity="0"
+                    />
+                </g>
+                <g className="bird-wing-front">
+                    <path d="M90,110 L50,65 L118,90 Z" fill="#F4D03F" />
+                </g>
+            </svg>
+        );
+
+        /* ====================== GLOBAL BIRD ====================== */
+        const GlobalBird = ({ message, position, moving }) => {
+            const isRightSide = position.x > window.innerWidth / 2;
+
+            return (
+                <div
+                    className={`bird-global ${moving ? 'moving' : ''}`}
+                    style={{
+                        transform: `translate(${position.x}px, ${position.y}px)`
+                    }}
+                >
+                    <BirdSVG />
+                    {message && (
+                        <div className={`speech-bubble visible ${isRightSide ? 'right-side' : ''}`}>
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[9px] font-bold tracking-[0.15em] text-gray-400">GAMMA AI</span>
+                                <div className="flex gap-0.5">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Icons.Star key={i} className="w-2 h-2 text-yellow-500" />
+                                    ))}
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-100 leading-relaxed">{message}</p>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        /* ====================== AUTH SCREEN ====================== */
+        const AuthScreen = ({ onLogin }) => {
+            const [isSignup, setIsSignup] = useState(false);
+            const [birdState, setBirdState] = useState('idle');
+            const [formData, setFormData] = useState({ email: '', password: '', name: '' });
+
+            const handleFocus = (field) => {
+                if (field === 'email' || field === 'name') setBirdState('watching');
+                if (field === 'password') setBirdState('privacy');
+            };
+
+            const handleBlur = () => setBirdState('idle');
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setBirdState('watching');
+
+                try {
+                    const response = await fetch('http://127.0.0.1:8000/api/users/login/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        setBirdState('celebrate');
+                        setTimeout(() => {
+                            setBirdState('fly-away');
+                            setTimeout(() => {
+                                onLogin(data.user);
+                            }, 1000);
+                        }, 800);
+                    } else {
+                        alert(data.message || 'Login failed');
+                        setBirdState('idle');
+                    }
+                } catch (err) {
+                    console.error('Login error:', err);
+                    alert('Failed to connect to server');
+                    setBirdState('idle');
+                }
+            };
+
+            let birdClass = 'w-32 h-32 mx-auto mb-8 transition-all duration-500 ';
+            if (birdState === 'idle') birdClass += 'bird-idle';
+            if (birdState === 'watching') birdClass += 'bird-watching';
+            if (birdState === 'privacy') birdClass += 'bird-privacy';
+            if (birdState === 'celebrate') birdClass += 'bird-celebrate';
+            if (birdState === 'fly-away') birdClass += 'bird-fly-away';
+
+            return (
+                <div className="min-h-screen flex items-center justify-center relative p-4">
+                    <div className="ambient-blob blob-1"></div>
+                    <div className="ambient-blob blob-2"></div>
+
+                    <div className="liquid-glass relative rounded-3xl p-10 w-full max-w-md z-10">
+                        <div className={birdClass}>
+                            <BirdSVG />
+                        </div>
+
+                        <h1 className="font-serif text-5xl font-bold text-center mb-2 tracking-wide">GAMMA</h1>
+                        <p className="text-center text-gray-400 text-xs uppercase tracking-[0.3em] mb-8">
+                            Premium Commerce
+                        </p>
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            {isSignup && (
+                                <input
+                                    type="text"
+                                    name="name"
+                                    placeholder="Full Name"
+                                    className="w-full px-5 py-4 rounded-xl premium-input text-sm"
+                                    onFocus={() => handleFocus('name')}
+                                    onBlur={handleBlur}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    required
+                                />
+                            )}
+                            <input
+                                type="email"
+                                name="email"
+                                placeholder="Email Address"
+                                className="w-full px-5 py-4 rounded-xl premium-input text-sm"
+                                onFocus={() => handleFocus('email')}
+                                onBlur={handleBlur}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                required
+                            />
+                            <input
+                                type="password"
+                                name="password"
+                                placeholder="Password"
+                                className="w-full px-5 py-4 rounded-xl premium-input text-sm"
+                                onFocus={() => handleFocus('password')}
+                                onBlur={handleBlur}
+                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                required
+                            />
+
+                            <button
+                                type="submit"
+                                className="w-full premium-btn bg-gradient-to-r from-yellow-600 to-yellow-500 text-black font-bold py-4 rounded-xl mt-6 uppercase tracking-widest text-sm"
+                            >
+                                {isSignup ? 'Join Gamma' : 'Enter Portal'}
+                            </button>
+                        </form>
+
+                        <button
+                            onClick={() => setIsSignup(!isSignup)}
+                            className="mt-6 w-full text-center text-gray-500 hover:text-yellow-500 text-xs uppercase tracking-widest transition-colors"
+                        >
+                            {isSignup ? 'Back to Login' : 'Request Access'}
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        /* ====================== NAVBAR ====================== */
+        const Navbar = ({
+            cartCount,
+            searchQuery,
+            onSearchChange,
+            activeTab,
+            onNavChange,
+            onCartClick,
+            onProfileClick
+        }) => {
+            const [showSearch, setShowSearch] = useState(false);
+
+            const navItem = (id, label) => (
+                <button
+                    onClick={() => onNavChange(id)}
+                    className={`transition-colors ${activeTab === id
+                        ? "text-white"
+                        : "text-gray-400 hover:text-white"
+                        }`}
+                >
+                    {label}
+                </button>
+            );
+
+            return (
+                <nav className="fixed top-0 w-full z-50 liquid-glass border-b border-white/10">
+                    <div className="max-w-7xl mx-auto px-6 py-4">
+                        <div className="flex items-center justify-between">
+                            <h1 className="font-serif text-3xl font-bold tracking-widest text-white">GAMMA</h1>
+
+                            <div className="hidden md:flex items-center gap-8 text-xs font-medium uppercase tracking-[0.2em]">
+                                {navItem("collection", "COLLECTION")}
+                                {navItem("new", "NEW")}
+                                {navItem("travel", "TRAVEL")}
+                                {navItem("about", "ABOUT")}
+                            </div>
+
+                            <div className="flex items-center gap-6">
+                                <button
+                                    onClick={() => setShowSearch(!showSearch)}
+                                    className="text-white hover:text-yellow-500 transition-colors"
+                                >
+                                    <Icons.Search />
+                                </button>
+                                <button
+                                    onClick={onProfileClick}
+                                    className="text-white hover:text-yellow-500 transition-colors"
+                                >
+                                    <Icons.User />
+                                </button>
+                                <button
+                                    onClick={onCartClick}
+                                    className="relative text-white hover:text-yellow-500 transition-colors"
+                                >
+                                    <Icons.Cart />
+                                    {cartCount > 0 && (
+                                        <span className="cart-badge">{cartCount}</span>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+
+                        {showSearch && (
+                            <div className="mt-4" style={{ animation: 'slideDown 0.3s ease' }}>
+                                <input
+                                    type="text"
+                                    placeholder="Search products..."
+                                    value={searchQuery}
+                                    onChange={(e) => onSearchChange(e.target.value)}
+                                    className="w-full px-5 py-3 rounded-xl premium-input text-sm"
+                                    autoFocus
+                                />
+                            </div>
+                        )}
+                    </div>
+                </nav>
+            );
+        };
+
+        /* ====================== PRODUCT CARD / GRID / MODAL ====================== */
+
+        const ProductCard = ({ product, onOpen, onAddToCart, onHover }) => (
+            <div
+                className="glass-card rounded-2xl overflow-hidden flex flex-col h-full cursor-pointer"
+                onMouseEnter={(e) => {
+                    if (!onHover) return;
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    onHover(product, rect);
+                }}
+            >
+                <div className="relative overflow-hidden">
+                    <img src={product.image} className="w-full h-56 object-cover" />
+                    {product.tag && (
+                        <span className="absolute top-3 left-3 text-[10px] uppercase tracking-[0.2em] bg-black/70 text-gray-100 rounded-full px-3 py-1">
+                            {product.tag}
+                        </span>
+                    )}
+                    <button className="absolute top-3 right-3 text-white/80 hover:text-red-400 transition-colors">
+                        <Icons.Heart />
+                    </button>
+                </div>
+                <div className="p-5 flex flex-col flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-serif text-lg text-white">{product.name}</h3>
+                        <span className="text-sm font-semibold text-yellow-400">
+                            ₹{product.price.toLocaleString('en-IN')}
+                        </span>
+                    </div>
+                    <p className="text-xs text-gray-400 mb-3">{product.description}</p>
+                    <div className="flex items-center justify-between text-xs text-gray-400 mb-4">
+                        <div className="flex items-center gap-1">
+                            <Icons.Star className="w-3.5 h-3.5 text-yellow-400" />
+                            <span>{product.rating.toFixed(1)} • {product.reviews} reviews</span>
+                        </div>
+                    </div>
+                    <div className="mt-auto flex items-center gap-3">
+                        <button
+                            onClick={() => onOpen(product)}
+                            className="flex-1 text-xs uppercase tracking-[0.2em] text-gray-200 border border-white/15 rounded-full py-2 hover:bg-white/10 transition-colors"
+                        >
+                            View
+                        </button>
+                        <button
+                            onClick={() => onAddToCart(product)}
+                            className="flex-1 text-xs uppercase tracking-[0.2em] bg-gradient-to-r from-yellow-600 to-yellow-500 text-black rounded-full py-2 premium-btn"
+                        >
+                            Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const ProductDetailModal = ({ product, onClose }) => {
+            if (!product) return null;
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center success-overlay">
+                    <div className="max-w-4xl w-full mx-4 bg-black/80 rounded-3xl border border-white/15 overflow-hidden"
+                        style={{ animation: 'macOpen 0.23s ease-out' }}>
+                        <div className="flex flex-col md:flex-row">
+                            <div className="md:w-1/2 h-64 md:h-auto">
+                                <img src={product.image} className="w-full h-full object-cover" />
+                            </div>
+                            <div className="md:w-1/2 p-6 md:p-8 space-y-4">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <h2 className="font-serif text-2xl text-white mb-1">{product.name}</h2>
+                                        <p className="text-xs uppercase tracking-[0.25em] text-gray-500">{product.category}</p>
+                                    </div>
+                                    <button onClick={onClose} className="text-gray-400 hover:text-white">
+                                        <Icons.X />
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center gap-2 text-sm text-gray-300">
+                                    <div className="flex items-center gap-1">
+                                        <Icons.Star className="w-4 h-4 text-yellow-400" />
+                                        <span>{product.rating.toFixed(1)}</span>
+                                    </div>
+                                    <span>•</span>
+                                    <span>{product.reviews} reviews</span>
+                                    <span>•</span>
+                                    <span className="text-yellow-400 font-semibold">
+                                        ₹{product.price.toLocaleString('en-IN')}
+                                    </span>
+                                </div>
+
+                                <p className="text-sm text-gray-200 leading-relaxed">{product.description}</p>
+
+                                <div>
+                                    <p className="text-xs uppercase tracking-[0.25em] text-gray-500 mb-2">Key Features</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {product.features.map((f, idx) => (
+                                            <span key={idx} className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-gray-200">
+                                                {f}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between pt-2">
+                                    <span className="text-xs text-gray-400">In Stock: {product.stock}</span>
+                                    <button className="premium-btn bg-gradient-to-r from-yellow-600 to-yellow-500 text-black text-xs uppercase tracking-[0.25em] px-5 py-2 rounded-full">
+                                        Add to Cart
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ProductGrid = ({ products, onOpen, onAddToCart, onProductHover, title, subtitle }) => (
+            <section className="pt-28 pb-16">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="mb-10 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                        <div>
+                            <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-2">{subtitle}</p>
+                            <h2 className="font-serif text-4xl md:text-5xl text-white">{title}</h2>
+                        </div>
+                        <p className="text-xs text-gray-400 max-w-sm">
+                            Every piece in this collection is built for people who live between airports, studios and late-night sessions.
+                        </p>
+                    </div>
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {products.map(p => (
+                            <ProductCard
+                                key={p.id}
+                                product={p}
+                                onOpen={onOpen}
+                                onAddToCart={onAddToCart}
+                                onHover={onProductHover}
+                            />
+                        ))}
+                    </div>
+                </div>
+            </section>
+        );
+
+        /* ====================== HERO & ABOUT ====================== */
+
+        const Hero = ({ onCtaHover }) => (
+            <section className="pt-24 pb-12">
+                <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-10 items-center">
+                    <div>
+                        <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-4">CARRY LESS. ARRIVE BETTER.</p>
+                        <h1 className="font-serif text-5xl md:text-6xl text-white mb-6">
+                            Travel <span className="text-yellow-500">intelligently</span>.
+                        </h1>
+                        <p className="text-sm text-gray-300 mb-8 max-w-md">
+                            Gamma pairs premium hardware with an AI companion that learns how you move, what you carry, and where you’re going next.
+                        </p>
+                        <button
+                            className="premium-btn bg-gradient-to-r from-yellow-600 to-yellow-500 text-black font-semibold text-xs uppercase tracking-[0.3em] px-8 py-3 rounded-full"
+                            onMouseEnter={onCtaHover}
+                        >
+                            Start with the collection
+                        </button>
+                    </div>
+                    <div className="relative">
+                        <div className="glass-card rounded-3xl overflow-hidden">
+                            <img
+                                src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=900&q=80"
+                                className="w-full h-72 object-cover"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </section>
+        );
+
+        const AboutSection = () => (
+            <section className="pt-32 pb-20">
+                <div className="max-w-5xl mx-auto px-6">
+                    <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-3">ABOUT GAMMA</p>
+                    <h2 className="font-serif text-4xl text-white mb-6">Tools for people who are always in motion.</h2>
+                    <p className="text-sm text-gray-300 mb-4">
+                        Gamma started as a design experiment: what happens when luggage, accessories and audio gear
+                        are built around one simple idea — you shouldn’t have to think about them at all.
+                    </p>
+                    <p className="text-sm text-gray-300 mb-6">
+                        Every object in the collection is tuned for airports at 3AM, late trains, studio sessions
+                        that run past midnight, and the quiet in between. The AI companion is there as a calm,
+                        opinionated co-pilot: surfacing what matters, hiding what doesn’t.
+                    </p>
+                    <div className="grid md:grid-cols-3 gap-6 mt-6">
+                        <div className="glass-card rounded-2xl p-5 text-sm text-gray-200">
+                            <p className="text-xs uppercase tracking-[0.25em] text-gray-500 mb-2">Design</p>
+                            <p>Neutral palettes, quiet branding and materials selected to age with you, not against you.</p>
+                        </div>
+                        <div className="glass-card rounded-2xl p-5 text-sm text-gray-200">
+                            <p className="text-xs uppercase tracking-[0.25em] text-gray-500 mb-2">Intelligence</p>
+                            <p>Gamma AI learns what you pack, what you play and where you go to give context-aware suggestions.</p>
+                        </div>
+                        <div className="glass-card rounded-2xl p-5 text-sm text-gray-200">
+                            <p className="text-xs uppercase tracking-[0.25em] text-gray-500 mb-2">Lifetime</p>
+                            <p>Most hardware carries extended warranties and is serviced through a global repair network.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        );
+
+        /* ====================== CART & PROFILE PANELS ====================== */
+
+        const CartDrawer = ({ open, items, onClose, onClear }) => {
+            if (!open) return null;
+            const total = items.reduce((sum, p) => sum + p.price, 0);
+
+            return (
+                <div className="fixed inset-0 z-50 flex justify-end success-overlay">
+                    <div className="w-full max-w-md h-full bg-black/85 border-l border-white/10"
+                        style={{ animation: 'macSlideIn 0.24s ease-out' }}>
+                        <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
+                            <h3 className="text-sm uppercase tracking-[0.25em] text-gray-300">Cart</h3>
+                            <button onClick={onClose} className="text-gray-400 hover:text-white">
+                                <Icons.X />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4 overflow-y-auto h-[calc(100%-140px)]">
+                            {items.length === 0 && (
+                                <p className="text-xs text-gray-500">Nothing here yet. Let Gamma nudge you towards something useful.</p>
+                            )}
+                            {items.map((item, idx) => (
+                                <div key={idx} className="flex gap-3 items-center">
+                                    <img src={item.image} className="w-14 h-14 rounded-xl object-cover" />
+                                    <div className="flex-1">
+                                        <p className="text-sm text-white">{item.name}</p>
+                                        <p className="text-[11px] text-gray-500 uppercase tracking-[0.2em]">{item.category}</p>
+                                    </div>
+                                    <span className="text-sm text-yellow-400">
+                                        ₹{item.price.toLocaleString('en-IN')}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="px-6 py-4 border-t border-white/10 flex items-center justify-between gap-4">
+                            <button
+                                onClick={onClear}
+                                disabled={items.length === 0}
+                                className={`text-[11px] uppercase tracking-[0.2em] rounded-full px-4 py-2 border 
+                                           ${items.length === 0 ? 'border-white/10 text-gray-500 cursor-not-allowed' : 'border-white/20 text-gray-200 hover:bg-white/10'}`}
+                            >
+                                Clear All
+                            </button>
+                            <div className="text-right">
+                                <span className="block text-[11px] text-gray-500 uppercase tracking-[0.2em]">Total</span>
+                                <span className="text-sm text-white font-semibold">
+                                    ₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ProfilePanel = ({ open, onClose }) => {
+            if (!open) return null;
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center success-overlay">
+                    <div className="liquid-glass rounded-3xl p-8 w-full max-w-md"
+                        style={{ animation: 'macOpen 0.23s ease-out' }}>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-sm uppercase tracking-[0.25em] text-gray-300">Profile</h3>
+                            <button onClick={onClose} className="text-gray-400 hover:text-white">
+                                <Icons.X />
+                            </button>
+                        </div>
+                        <h2 className="font-serif text-2xl text-white mb-2">Gamma ID</h2>
+                        <p className="text-sm text-gray-300 mb-6">
+                            This is your space to sync preferences, saved kits and upcoming trips. For now, everything runs locally in this demo.
+                        </p>
+                        <div className="space-y-3">
+                            <button className="w-full premium-btn bg-white text-black text-xs uppercase tracking-[0.25em] py-3 rounded-full">
+                                Sign in with Email
+                            </button>
+                            <button className="w-full border border-white/15 text-xs uppercase tracking-[0.25em] py-3 rounded-full text-gray-200 hover:bg-white/5">
+                                Create Member Profile
+                            </button>
+                        </div>
+                        <p className="mt-4 text-[11px] text-gray-500 leading-relaxed">
+                            Once live, Gamma ID will let your AI companion remember how you like to travel
+                            — bags, loadouts, even preferred seat rows.
+                        </p>
+                    </div>
+                </div>
+            );
+        };
+
+        /* ====================== APP ====================== */
+
+        const App = () => {
+            const [isAuthed, setIsAuthed] = useState(false);
+            const [products, setProducts] = useState([]);
+            const [cart, setCart] = useState([]);
+            const [searchQuery, setSearchQuery] = useState("");
+            const [selectedProduct, setSelectedProduct] = useState(null);
+            const [bird, setBird] = useState({
+                position: { x: 140, y: 260 },
+                message: null,
+                moving: false
+            });
+            const [activeTab, setActiveTab] = useState("collection");
+            const [cartOpen, setCartOpen] = useState(false);
+            const [profileOpen, setProfileOpen] = useState(false);
+            const birdMoveTimeout = useRef(null);
+
+            useEffect(() => {
+                const fetchProducts = async () => {
+                    try {
+                        const response = await fetch('http://127.0.0.1:8000/api/products/');
+                        const data = await response.json();
+                        // Transform to include UI-specific fields if missing
+                        const transformed = data.map(p => ({
+                            ...p,
+                            rating: p.rating || 4.5,
+                            reviews: p.reviews || 0,
+                            features: p.features || ["Premium Quality", "Authentic", "Warranty"],
+                            tag: p.tag || "Core",
+                            price: parseFloat(p.price) // Ensure number
+                        }));
+                        setProducts(transformed);
+                    } catch (err) {
+                        console.error("Failed to load products:", err);
+                    }
+                };
+                fetchProducts();
+            }, []);
+
+            const moveBird = (position, message = null) => {
+                if (birdMoveTimeout.current) clearTimeout(birdMoveTimeout.current);
+                setBird(prev => ({
+                    position,
+                    message: message !== null ? message : prev.message,
+                    moving: true
+                }));
+                birdMoveTimeout.current = setTimeout(() => {
+                    setBird(prev => ({ ...prev, moving: false }));
+                }, 900);
+            };
+
+            const handleAddToCart = (product) => {
+                setCart(prev => [...prev, product]);
+                moveBird(
+                    { x: window.innerWidth - 220, y: 110 },
+                    `Solid choice. ${product.name} slots neatly into your current setup.`
+                );
+            };
+
+            const handleOpenProduct = (product) => {
+                setSelectedProduct(product);
+                moveBird(
+                    { x: 120, y: 220 },
+                    `${product.name}: let me know when you want a full pack recommendation around this.`
+                );
+            };
+
+            const handleProductHover = (product, rect) => {
+                const x = rect.left - 140;
+                const y = rect.top + rect.height * 0.3;
+                moveBird(
+                    { x, y },
+                    `${product.name} • ${product.description.slice(0, 70)}…`
+                );
+            };
+
+            const handleHeroCtaHover = (e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                moveBird(
+                    { x: rect.right + 40, y: rect.top + rect.height / 2 },
+                    "Hover over anything in the grid and I’ll tell you why it belongs in your carry."
+                );
+            };
+
+            const handleNavChange = (tab) => {
+                setActiveTab(tab);
+                if (tab === "collection") {
+                    moveBird(
+                        { x: 120, y: 220 },
+                        "Home base. Everything Gamma makes lives here."
+                    );
+                } else if (tab === "new") {
+                    moveBird(
+                        { x: window.innerWidth - 220, y: 220 },
+                        "Fresh drops only. Limited runs, experimental materials, no restocks."
+                    );
+                } else if (tab === "travel") {
+                    moveBird(
+                        { x: 160, y: 320 },
+                        "Only the pieces that earn their space in a carry-on."
+                    );
+                } else if (tab === "about") {
+                    moveBird(
+                        { x: window.innerWidth / 2 - 60, y: 200 },
+                        "Want the origin story? This is where Gamma explains itself."
+                    );
+                }
+            };
+
+            const filteredBySearch = products.filter(p =>
+                p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                p.category.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+
+            let visibleProducts = filteredBySearch;
+            let gridTitle = "Selected Works";
+            let gridSubtitle = "Curated for movement";
+
+            if (activeTab === "new") {
+                visibleProducts = filteredBySearch.filter(p => p.tag === "New");
+                gridTitle = "New Signals";
+                gridSubtitle = "Fresh releases & limited runs";
+            } else if (activeTab === "travel") {
+                visibleProducts = filteredBySearch.filter(p =>
+                    ["Bags", "Luggage", "Tech", "Apparel"].includes(p.category)
+                );
+                gridTitle = "Travel System";
+                gridSubtitle = "Built around airports and long nights";
+            }
+
+            if (!isAuthed) {
+                return <AuthScreen onLogin={() => setIsAuthed(true)} />;
+            }
+
+            return (
+                <div className="min-h-screen bg-black relative">
+                    <div className="ambient-blob blob-1"></div>
+                    <div className="ambient-blob blob-2"></div>
+
+                    <Navbar
+                        cartCount={cart.length}
+                        searchQuery={searchQuery}
+                        onSearchChange={setSearchQuery}
+                        activeTab={activeTab}
+                        onNavChange={handleNavChange}
+                        onCartClick={() => setCartOpen(true)}
+                        onProfileClick={() => setProfileOpen(true)}
+                    />
+
+                    {activeTab !== "about" && <Hero onCtaHover={handleHeroCtaHover} />}
+
+                    {activeTab === "about" ? (
+                        <AboutSection />
+                    ) : (
+                        <ProductGrid
+                            products={visibleProducts}
+                            onOpen={handleOpenProduct}
+                            onAddToCart={handleAddToCart}
+                            onProductHover={handleProductHover}
+                            title={gridTitle}
+                            subtitle={gridSubtitle}
+                        />
+                    )}
+
+                    <footer className="py-10 border-t border-white/10">
+                        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500 uppercase tracking-[0.25em]">
+                            <span>© 2024 Gamma Studio</span>
+                            <span>Designed for carry rituals</span>
+                        </div>
+                    </footer>
+
+                    <GlobalBird message={bird.message} position={bird.position} moving={bird.moving} />
+
+                    <ProductDetailModal
+                        product={selectedProduct}
+                        onClose={() => setSelectedProduct(null)}
+                    />
+
+                    <CartDrawer
+                        open={cartOpen}
+                        items={cart}
+                        onClose={() => setCartOpen(false)}
+                        onClear={() => setCart([])}
+                    />
+
+                    <ProfilePanel
+                        open={profileOpen}
+                        onClose={() => setProfileOpen(false)}
+                    />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
+
 </html>
