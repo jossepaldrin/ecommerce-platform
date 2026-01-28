@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAMMA - Search & Chatbot Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="./smart-search.js"></script>
+    <script src="./chatbot.js"></script>
+    <script src="./js/products.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000;
+            color: #fff;
+        }
+
+        .liquid-glass {
+            background: linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.1) 0%,
+                    rgba(255, 255, 255, 0.05) 100%);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.37),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.08) 0%,
+                    rgba(255, 255, 255, 0.03) 100%);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(212, 175, 55, 0.4);
+            box-shadow: 0 20px 60px rgba(212, 175, 55, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        /* ====================== SMART SEARCH COMPONENT ====================== */
+        const SmartSearchBar = ({ isOpen, onClose, onProductSelect }) => {
+            const [searchQuery, setSearchQuery] = useState('');
+            const [suggestions, setSuggestions] = useState([]);
+            const [selectedIndex, setSelectedIndex] = useState(-1);
+            const [searchHistory, setSearchHistory] = useState([]);
+            const inputRef = useRef(null);
+
+            useEffect(() => {
+                const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+                setSearchHistory(history);
+            }, []);
+
+            useEffect(() => {
+                if (isOpen && inputRef.current) {
+                    inputRef.current.focus();
+                }
+            }, [isOpen]);
+
+            useEffect(() => {
+                if (searchQuery.trim().length >= 2) {
+                    const results = getSearchSuggestions(PRODUCTS, searchQuery, 8);
+                    setSuggestions(results);
+                } else if (searchQuery.trim().length === 0) {
+                    const popular = getPopularProducts(PRODUCTS, 6);
+                    setSuggestions(popular);
+                } else {
+                    setSuggestions([]);
+                }
+                setSelectedIndex(-1);
+            }, [searchQuery]);
+
+            const handleKeyDown = (e) => {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setSelectedIndex(prev => Math.min(prev + 1, suggestions.length - 1));
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setSelectedIndex(prev => Math.max(prev - 1, -1));
+                } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                    e.preventDefault();
+                    handleSelectProduct(suggestions[selectedIndex]);
+                } else if (e.key === 'Escape') {
+                    handleClose();
+                }
+            };
+
+            const handleSelectProduct = (product) => {
+                const newHistory = [product.name, ...searchHistory.filter(h => h !== product.name)].slice(0, 10);
+                localStorage.setItem('searchHistory', JSON.stringify(newHistory));
+                setSearchHistory(newHistory);
+
+                onProductSelect(product);
+                handleClose();
+            };
+
+            const handleClose = () => {
+                setSearchQuery('');
+                setSuggestions([]);
+                setSelectedIndex(-1);
+                onClose();
+            };
+
+            if (!isOpen) return null;
+
+            return (
+                <>
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50" onClick={handleClose} />
+                    <div className="fixed top-0 left-0 right-0 z-50 pt-20 px-4">
+                        <div className="max-w-3xl mx-auto">
+                            <div className="liquid-glass rounded-2xl p-6 mb-4">
+                                <div className="flex items-center gap-4">
+                                    <svg className="w-6 h-6 text-yellow-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <input
+                                        ref={inputRef}
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onKeyDown={handleKeyDown}
+                                        placeholder="Search for products... (Try: MacBook, linen shirt, cargo pants)"
+                                        className="flex-1 bg-transparent text-white text-lg outline-none placeholder-gray-400"
+                                    />
+                                    {searchQuery && (
+                                        <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-white transition-colors">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                    <button onClick={handleClose} className="text-gray-400 hover:text-white transition-colors ml-2">
+                                        <span className="text-sm uppercase tracking-wider">ESC</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {suggestions.length > 0 && (
+                                <div className="liquid-glass rounded-2xl p-4 max-h-[60vh] overflow-y-auto">
+                                    <p className="text-xs uppercase tracking-wide text-gray-400 mb-3 px-2">
+                                        {searchQuery.trim().length === 0 ? 'Popular Products' : `${suggestions.length} Results`}
+                                    </p>
+                                    <div className="space-y-2">
+                                        {suggestions.map((product, index) => (
+                                            <div
+                                                key={product.id}
+                                                onClick={() => handleSelectProduct(product)}
+                                                className={`flex items-center gap-4 p-3 rounded-xl cursor-pointer transition-all ${selectedIndex === index
+                                                    ? 'bg-white/10 border border-yellow-500/30'
+                                                    : 'hover:bg-white/5 border border-transparent'
+                                                    }`}
+                                            >
+                                                <img
+                                                    src={product.image_url}
+                                                    alt={product.name}
+                                                    className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                                                />
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="text-white font-medium truncate">{product.name}</h4>
+                                                    <p className="text-sm text-gray-400 capitalize">{product.category} • {product.subcategory}</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-yellow-500 font-bold">₹{product.price.toLocaleString('en-IN')}</p>
+                                                    {product.originalPrice && (
+                                                        <p className="text-xs text-gray-500 line-through">₹{product.originalPrice.toLocaleString('en-IN')}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {searchQuery.trim().length >= 2 && suggestions.length === 0 && (
+                                <div className="liquid-glass rounded-2xl p-8 text-center">
+                                    <p className="text-gray-400 mb-2">No products found for "{searchQuery}"</p>
+                                    <p className="text-sm text-gray-500">Try searching for: MacBook, T-Shirt, Jeans, or Headphones</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </>
+            );
+        };
+
+        /* ====================== CHATBOT COMPONENT ====================== */
+        const Chatbot = () => {
+            const [isOpen, setIsOpen] = useState(false);
+            const [messages, setMessages] = useState([]);
+            const [inputMessage, setInputMessage] = useState('');
+            const [isTyping, setIsTyping] = useState(false);
+            const messagesEndRef = useRef(null);
+            const inputRef = useRef(null);
+
+            useEffect(() => {
+                if (messages.length === 0) {
+                    setMessages([{
+                        id: 1,
+                        type: 'bot',
+                        text: getWelcomeMessage(),
+                        timestamp: new Date()
+                    }]);
+                }
+            }, []);
+
+            useEffect(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, [messages]);
+
+            useEffect(() => {
+                if (isOpen && inputRef.current) {
+                    inputRef.current.focus();
+                }
+            }, [isOpen]);
+
+            const addMessage = (text, type = 'user') => {
+                const newMessage = {
+                    id: Date.now(),
+                    type,
+                    text,
+                    timestamp: new Date()
+                };
+                setMessages(prev => [...prev, newMessage]);
+            };
+
+            const handleSendMessage = () => {
+                if (!inputMessage.trim()) return;
+                addMessage(inputMessage, 'user');
+                const userMsg = inputMessage;
+                setInputMessage('');
+                setIsTyping(true);
+                setTimeout(() => {
+                    const response = getChatbotResponse(userMsg);
+                    addMessage(response, 'bot');
+                    setIsTyping(false);
+                }, 800);
+            };
+
+            const handleQuickAction = (actionId) => {
+                const action = QUICK_ACTIONS[actionId];
+                if (action) {
+                    addMessage(action.label, 'user');
+                    setIsTyping(true);
+                    setTimeout(() => {
+                        addMessage(action.response, 'bot');
+                        setIsTyping(false);
+                    }, 600);
+                }
+            };
+
+            const handleKeyPress = (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                }
+            };
+
+            return (
+                <>
+                    <button
+                        onClick={() => setIsOpen(!isOpen)}
+                        className={`fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-r from-yellow-600 to-yellow-500 text-black shadow-lg hover:shadow-2xl transition-all duration-300 flex items-center justify-center group ${isOpen ? 'scale-0' : 'scale-100'
+                            }`}
+                    >
+                        <svg className="w-8 h-8 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                        </svg>
+                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse"></span>
+                    </button>
+
+                    <div
+                        className={`fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-3rem)] transition-all duration-300 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'
+                            }`}
+                        style={{ transformOrigin: 'bottom right' }}
+                    >
+                        <div className="liquid-glass rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[600px] max-h-[80vh]">
+                            <div className="bg-gradient-to-r from-yellow-600 to-yellow-500 p-4 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-black/20 flex items-center justify-center">
+                                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-black font-bold">GAMMA Assistant</h3>
+                                        <p className="text-xs text-black/70">Always here to help</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setIsOpen(false)} className="text-black/70 hover:text-black transition-colors">
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                                {messages.map((msg) => (
+                                    <div key={msg.id} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                        <div
+                                            className={`max-w-[80%] px-4 py-3 rounded-2xl ${msg.type === 'user'
+                                                ? 'bg-yellow-500 text-black'
+                                                : 'bg-white/10 text-white'
+                                                }`}
+                                            style={{ whiteSpace: 'pre-line' }}
+                                        >
+                                            {msg.text}
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {isTyping && (
+                                    <div className="flex justify-start">
+                                        <div className="bg-white/10 px-4 py-3 rounded-2xl">
+                                            <div className="flex gap-1">
+                                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div ref={messagesEndRef} />
+                            </div>
+
+                            {messages.length <= 2 && (
+                                <div className="px-4 pb-3">
+                                    <p className="text-xs text-gray-400 mb-2">Quick Actions:</p>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {Object.entries(QUICK_ACTIONS).map(([id, action]) => (
+                                            <button
+                                                key={id}
+                                                onClick={() => handleQuickAction(id)}
+                                                className="text-xs px-3 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-white transition-colors border border-white/10"
+                                            >
+                                                {action.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="p-4 border-t border-white/10">
+                                <div className="flex gap-2">
+                                    <input
+                                        ref={inputRef}
+                                        type="text"
+                                        value={inputMessage}
+                                        onChange={(e) => setInputMessage(e.target.value)}
+                                        onKeyPress={handleKeyPress}
+                                        placeholder="Type your message..."
+                                        className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 outline-none focus:border-yellow-500/50 transition-colors text-sm"
+                                    />
+                                    <button
+                                        onClick={handleSendMessage}
+                                        disabled={!inputMessage.trim()}
+                                        className="px-4 py-3 bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-xl transition-colors flex-shrink-0"
+                                    >
+                                        <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            );
+        };
+
+        /* ====================== DEMO APP ====================== */
+        const DemoApp = () => {
+            const [isSearchOpen, setIsSearchOpen] = useState(false);
+            const [selectedProduct, setSelectedProduct] = useState(null);
+
+            const handleProductSelect = (product) => {
+                setSelectedProduct(product);
+                alert(`Selected: ${product.name}\nPrice: ₹${product.price.toLocaleString('en-IN')}\n\nThis would open the product detail in the main app.`);
+            };
+
+            return (
+                <div className="min-h-screen bg-black p-8">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="text-center mb-12">
+                            <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-yellow-300 mb-4">
+                                GAMMA
+                            </h1>
+                            <p className="text-gray-400 text-lg mb-8">Smart Search & Chatbot Demo</p>
+
+                            <div className="glass-card p-8 rounded-2xl max-w-2xl mx-auto">
+                                <h2 className="text-2xl font-bold text-white mb-6">Test the Features</h2>
+
+                                <div className="space-y-4">
+                                    <button
+                                        onClick={() => setIsSearchOpen(true)}
+                                        className="w-full px-6 py-4 bg-gradient-to-r from-yellow-600 to-yellow-500 text-black font-bold rounded-xl hover:shadow-2xl transition-all text-lg"
+                                    >
+                                        🔍 Open Smart Search
+                                    </button>
+
+                                    <div className="glass-card p-4 rounded-xl">
+                                        <h3 className="text-white font-semibold mb-2">💬 Chatbot is Always Available</h3>
+                                        <p className="text-gray-400 text-sm">Look for the yellow button in the bottom-right corner</p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-8 pt-6 border-t border-white/10">
+                                    <h3 className="text-white font-semibold mb-3">Try These Searches:</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {['MacBook', 'Linen Shirt', 'Jeans', 'iPhone', 'Sweater'].map(term => (
+                                            <button
+                                                key={term}
+                                                onClick={() => {
+                                                    setIsSearchOpen(true);
+                                                }}
+                                                className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-white text-sm transition-colors border border-white/10"
+                                            >
+                                                {term}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 pt-6 border-t border-white/10">
+                                    <h3 className="text-white font-semibold mb-3">Ask the Chatbot:</h3>
+                                    <ul className="text-gray-400 text-sm space-y-1">
+                                        <li>• "Track my order"</li>
+                                        <li>• "What is your return policy?"</li>
+                                        <li>• "Shipping information"</li>
+                                        <li>• "Recommend a laptop"</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <SmartSearchBar
+                        isOpen={isSearchOpen}
+                        onClose={() => setIsSearchOpen(false)}
+                        onProductSelect={handleProductSelect}
+                    />
+
+                    <Chatbot />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<DemoApp />);
+    </script>
+</body>
+
+</html>
