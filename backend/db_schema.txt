@@ -1,0 +1,32 @@
+--- TABLES ---
+django_migrations
+sqlite_sequence
+auth_group_permissions
+auth_user_groups
+auth_user_user_permissions
+django_admin_log
+django_content_type
+auth_permission
+auth_group
+auth_user
+django_session
+api_product
+api_cart
+api_order
+api_payment
+api_orderitem
+api_cartitem
+api_review
+
+--- PRODUCT TABLE COLUMNS ---
+
+Table: api_product
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'name', 'varchar(200)', 1, None, 0)
+(2, 'description', 'TEXT', 1, None, 0)
+(3, 'price', 'decimal', 1, None, 0)
+(4, 'category', 'varchar(100)', 1, None, 0)
+(5, 'image_url', 'varchar(500)', 1, None, 0)
+(6, 'stock', 'INTEGER', 1, None, 0)
+(7, 'is_active', 'bool', 1, None, 0)
+(8, 'created_at', 'datetime', 1, None, 0)
