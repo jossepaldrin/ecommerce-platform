@@ -6,7 +6,8 @@ class Product(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.CharField(max_length=100)
-    image_url = models.CharField(max_length=500)  # Using CharField as per schema 'string'
+    image = models.ImageField(upload_to='products/', blank=True, null=True)
+    image_url = models.CharField(max_length=500, blank=True, null=True)
     
     # Extended fields from Migration 0002
     original_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
